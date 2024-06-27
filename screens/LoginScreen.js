@@ -26,25 +26,25 @@ const LoginScreen = ({ navigation }) => {
 
   useFocusEffect(() => {
     // Check if user is authenticated
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        setIsLoading(true);
-        user
-          .reload()
-          .then(() => {
-            if (user.email) {
-              navigation.replace("Main");
-            }
-          })
-          .catch((error) => {
-            auth.signOut();
-            console.error(error);
-          })
-          .finally(() => {
-            setIsLoading(false);
-          });
-      }
-    });
+    // auth.onAuthStateChanged((user) => {
+    //   if (user) {
+    //     setIsLoading(true);
+    //     user
+    //       .reload()
+    //       .then(() => {
+    //         if (user.email) {
+    //           navigation.replace("Main");
+    //         }
+    //       })
+    //       .catch((error) => {
+    //         auth.signOut();
+    //         console.error(error);
+    //       })
+    //       .finally(() => {
+    //         setIsLoading(false);
+    //       });
+    //   }
+    // });
   });
 
   const handleLoginPress = () => {

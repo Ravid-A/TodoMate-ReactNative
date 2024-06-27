@@ -15,23 +15,27 @@ const MainScreen = ({ navigation }) => {
     // Fetch tasks
 
     // Check if user is authenticated
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        console.log("User is not authenticated");
-        navigation.replace("Login");
-      } else {
-        user
-          .reload()
-          .then(() => {
-            if (!user.email) {
-              navigation.replace("Login");
-            }
-          })
-          .catch((error) => {
-            navigation.replace("Login");
-          });
-      }
+    auth.onIdTokenChanged((user) => {
+      console.log("onIdTokenChanged", user);
     });
+
+    // auth.onAuthStateChanged((user) => {
+    //   if (!user) {
+    //     console.log("User is not authenticated");
+    //     navigation.replace("Login");
+    //   } else {
+    //     user
+    //       .reload()
+    //       .then(() => {
+    //         if (!user.email) {
+    //           navigation.replace("Login");
+    //         }
+    //       })
+    //       .catch((error) => {
+    //         navigation.replace("Login");
+    //       });
+    //   }
+    // });
   });
 
   const renderTask = ({ item }) => {

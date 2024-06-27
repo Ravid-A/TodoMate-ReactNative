@@ -27,7 +27,7 @@ function App() {
           <PaperProvider>
             <SafeAreaProvider>
               <Stack.Navigator
-                initialRouteName="Login"
+                initialRouteName="Main"
                 screenOptions={{
                   headerShown: false,
                 }}
