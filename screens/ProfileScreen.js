@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Button, Text, Portal, Modal } from "react-native-paper";
 import { getAuth, deleteUser } from "firebase/auth";
@@ -13,26 +13,44 @@ const ProfileScreen = ({ navigation }) => {
   const auth = getAuth();
 
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState(null);
 
-  useFocusEffect(() => {
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        console.log("User is not authenticated");
-        navigation.replace("Login");
-      } else {
-        user
-          .reload()
-          .then(() => {
-            if (!user.email) {
+  // Handle user state changes
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
+
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!initializing) {
+        if (!user) {
+          navigation.replace("Login");
+        } else {
+          // Fetch tasks
+          user
+            .reload()
+            .then(() => {
+              if (!user.email) {
+                navigation.replace("Login");
+              }
+            })
+            .catch((error) => {
+              console.error(error);
               navigation.replace("Login");
-            }
-          })
-          .catch(() => {
-            navigation.replace("Login");
-          });
+            });
+        }
       }
-    });
-  });
+    }, [user, initializing, navigation])
+  );
+
+  if (initializing) return null;
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -92,7 +110,7 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.mainContent}>
         <View style={styles.content}>
           <Text style={styles.title}>Connected as:</Text>
-          <Text style={styles.subtitle}>{auth.currentUser.email}</Text>
+          <Text style={styles.subtitle}>{user?.email || "user@email.com"}</Text>
         </View>
 
         <Button

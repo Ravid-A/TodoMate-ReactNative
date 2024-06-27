@@ -25,26 +25,22 @@ const LoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useFocusEffect(() => {
-    // Check if user is authenticated
-    // auth.onAuthStateChanged((user) => {
-    //   if (user) {
-    //     setIsLoading(true);
-    //     user
-    //       .reload()
-    //       .then(() => {
-    //         if (user.email) {
-    //           navigation.replace("Main");
-    //         }
-    //       })
-    //       .catch((error) => {
-    //         auth.signOut();
-    //         console.error(error);
-    //       })
-    //       .finally(() => {
-    //         setIsLoading(false);
-    //       });
-    //   }
-    // });
+    console.log("LoginScreen focused");
+    // Check if user is not authenticated
+    const user = auth.currentUser;
+
+    if (!user) {
+      return;
+    }
+
+    user
+      .reload()
+      .then(() => {
+        navigation.replace("Main");
+      })
+      .catch(() => {
+        return;
+      });
   });
 
   const handleLoginPress = () => {

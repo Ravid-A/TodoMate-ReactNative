@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { View, StyleSheet, FlatList } from "react-native";
 import { FAB } from "react-native-paper";
@@ -11,32 +11,44 @@ const MainScreen = ({ navigation }) => {
 
   const [tasks, setTasks] = useState([]);
 
-  useFocusEffect(() => {
-    // Fetch tasks
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState(null);
 
-    // Check if user is authenticated
-    auth.onIdTokenChanged((user) => {
-      console.log("onIdTokenChanged", user);
-    });
+  // Handle user state changes
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
 
-    // auth.onAuthStateChanged((user) => {
-    //   if (!user) {
-    //     console.log("User is not authenticated");
-    //     navigation.replace("Login");
-    //   } else {
-    //     user
-    //       .reload()
-    //       .then(() => {
-    //         if (!user.email) {
-    //           navigation.replace("Login");
-    //         }
-    //       })
-    //       .catch((error) => {
-    //         navigation.replace("Login");
-    //       });
-    //   }
-    // });
-  });
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!initializing) {
+        if (!user) {
+          navigation.replace("Login");
+        } else {
+          // Fetch tasks
+          user
+            .reload()
+            .then(() => {
+              if (!user.email) {
+                navigation.replace("Login");
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+              navigation.replace("Login");
+            });
+        }
+      }
+    }, [user, initializing, navigation])
+  );
+
+  if (initializing) return null;
 
   const renderTask = ({ item }) => {
     // Implement your task item component here
@@ -70,7 +82,7 @@ const MainScreen = ({ navigation }) => {
         style={styles.fabAddTask}
         icon="plus"
         onPress={() => {
-          /* Handle add task */
+          navigation.navigate("AddTask");
         }}
       />
     </>
