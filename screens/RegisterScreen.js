@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   button: {
-    marginBottom: 16,
+    marginTop: 40,
   },
   register: {
     textAlign: "right",
