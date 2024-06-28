@@ -106,7 +106,11 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <AppHeader navigation={navigation} />
+      <AppHeader
+        navigation={navigation}
+        addGoBack={true}
+        hasPreviousScreen={true}
+      />
       <View style={styles.mainContent}>
         <View style={styles.content}>
           <Text style={styles.title}>Connected as:</Text>

@@ -4,8 +4,13 @@ import { StyleSheet, Platform } from "react-native";
 import { getAuth } from "firebase/auth";
 import { set } from "firebase/database";
 
-const AppHeader = ({ navigation, showActions = true, onProfilePress }) => {
-  const styles = CreateStyleSheet(showActions);
+const AppHeader = ({
+  navigation,
+  showActions = true,
+  addGoBack = false,
+  onProfilePress,
+}) => {
+  const styles = CreateStyleSheet(showActions, addGoBack);
   const auth = getAuth();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +36,12 @@ const AppHeader = ({ navigation, showActions = true, onProfilePress }) => {
 
   return (
     <Appbar.Header style={styles.header}>
+      {addGoBack && (
+        <Appbar.BackAction
+          onPress={() => navigation.goBack()}
+          disabled={isLoading}
+        />
+      )}
       <Appbar.Content
         title="TodoMate"
         style={styles.title}
@@ -54,7 +65,23 @@ const AppHeader = ({ navigation, showActions = true, onProfilePress }) => {
   );
 };
 
-const CreateStyleSheet = (showActions) => {
+const CreateStyleSheet = (showActions, addGoBack) => {
+  const calculateRight = () => {
+    if (addGoBack) {
+      if (showActions) {
+        return -25;
+      } else {
+        return Platform.OS === "ios" ? 0 : 25;
+      }
+    }
+
+    if (!showActions) {
+      return Platform.OS === "ios" ? 0 : 7.5;
+    }
+
+    return Platform.OS === "ios" ? -25 : -45;
+  };
+
   const styles = StyleSheet.create({
     header: {
       justifyContent: "center",
@@ -62,13 +89,7 @@ const CreateStyleSheet = (showActions) => {
     title: {
       alignItems: "center",
       flex: 1,
-      right: !showActions
-        ? Platform.OS === "ios"
-          ? 0
-          : 7.5
-        : Platform.OS === "ios"
-        ? -25
-        : -45,
+      right: calculateRight(),
     },
     titleText: {
       fontWeight: "bold",

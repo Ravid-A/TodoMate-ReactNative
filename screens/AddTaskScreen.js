@@ -3,6 +3,8 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { TextInput, Button, Appbar } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
+import AppHeader from "../components/AppHeader";
+
 const AddTaskScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -35,10 +37,12 @@ const AddTaskScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Add Task" />
-      </Appbar.Header>
+      <AppHeader
+        navigation={navigation}
+        showActions={false}
+        addGoBack={true}
+        hasPreviousScreen={true}
+      />
 
       <ScrollView style={styles.content}>
         <TextInput
