@@ -96,13 +96,13 @@ const styles = StyleSheet.create({
   fabRefresh: {
     position: "absolute",
     margin: 16,
-    right: 0,
+    right: 5,
     bottom: 100,
   },
   fabAddTask: {
     position: "absolute",
     margin: 16,
-    right: 0,
+    right: 5,
     bottom: 25,
   },
 });
