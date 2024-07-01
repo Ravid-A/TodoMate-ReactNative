@@ -1,18 +1,35 @@
 import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet, FlatList, Text } from "react-native";
 import { FAB } from "react-native-paper";
 import { getAuth } from "firebase/auth";
+import { getFirestore, getDocs, collection } from "firebase/firestore";
 
 import AppHeader from "../components/AppHeader";
 
 const MainScreen = ({ navigation }) => {
   const auth = getAuth();
+  const db = getFirestore();
 
   const [tasks, setTasks] = useState([]);
 
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
+
+  const fetchTasks = () => {
+    // Implement fetching tasks from Firestore
+    getDocs(collection(db, "tasks"))
+      .then((querySnapshot) => {
+        const tasks = [];
+        querySnapshot.forEach((doc) => {
+          tasks.push({ id: doc.id, ...doc.data() });
+        });
+        setTasks(tasks);
+      })
+      .catch((error) => {
+        console.error("Error fetching tasks: ", error);
+      });
+  };
 
   // Handle user state changes
   const onAuthStateChanged = (user) => {
@@ -27,11 +44,12 @@ const MainScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
+      fetchTasks();
+
       if (!initializing) {
         if (!user) {
           navigation.replace("Login");
         } else {
-          // Fetch tasks
           user
             .reload()
             .then(() => {
@@ -52,7 +70,11 @@ const MainScreen = ({ navigation }) => {
 
   const renderTask = ({ item }) => {
     // Implement your task item component here
-    return <View />;
+    return (
+      <View>
+        <Text>{item.title}</Text>
+      </View>
+    );
   };
 
   const handleProfilePress = () => {
