@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { TextInput as PaperTextInput, Button } from "react-native-paper";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -11,6 +12,7 @@ import AppHeader from "../components/AppHeader";
 
 const RegisterScreen = ({ navigation }) => {
   const auth = getAuth();
+  const db = getFirestore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -92,7 +94,13 @@ const RegisterScreen = ({ navigation }) => {
 
     setIsLoading(true);
     createUserWithEmailAndPassword(auth, email, password)
-      .then(() => {
+      .then((userCredentials) => {
+        const user = userCredentials.user;
+
+        setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+        });
+
         Toast.show({
           type: "success",
           text1: "Success",
@@ -124,7 +132,7 @@ const RegisterScreen = ({ navigation }) => {
           text1: "Error",
           text2: "An error occurred, please try again later",
         });
-        console.error(error);
+        console.log(error);
       })
       .finally(() => {
         setIsLoading(false);

@@ -50,7 +50,8 @@ const ProfileScreen = ({ navigation }) => {
               }
             })
             .catch((error) => {
-              console.error(error);
+              console.log("Error reloading user");
+              console.log(error);
               navigation.replace("Login");
             });
         }
@@ -93,6 +94,9 @@ const ProfileScreen = ({ navigation }) => {
           });
         });
 
+        // Delete user document
+        deleteDoc(doc(db, "users", uid));
+
         Toast.show({
           type: "success",
           text1: "Success",
@@ -119,7 +123,7 @@ const ProfileScreen = ({ navigation }) => {
           text1: "Error",
           text2: "An error occurred while deleting your account",
         });
-        console.error(error);
+        console.log(error);
       });
   };
 
