@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Appbar } from "react-native-paper";
 import { StyleSheet, Platform } from "react-native";
 import { getAuth } from "firebase/auth";
-import { set } from "firebase/database";
 
 const AppHeader = ({
   navigation,
@@ -27,7 +26,7 @@ const AppHeader = ({
         });
       })
       .catch((error) => {
-        console.error(error);
+        console.log(error);
       })
       .finally(() => {
         setIsLoading(false);

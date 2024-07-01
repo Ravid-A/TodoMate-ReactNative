@@ -48,7 +48,7 @@ const ForgotPasswordDialog = ({ onDismiss }) => {
           text1: "Error",
           text2: "An error occurred, please try again later",
         });
-        console.error(error);
+        console.log(error);
       })
       .finally(() => {
         setIsLoading(false);

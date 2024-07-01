@@ -10,7 +10,6 @@ import {
 } from "firebase/auth";
 
 import dismissKeyboard from "../helpers/dismissKeyboard";
-import { set } from "firebase/database";
 
 const ChangePasswordDialog = ({ onDismiss }) => {
   const auth = getAuth();
@@ -114,7 +113,7 @@ const ChangePasswordDialog = ({ onDismiss }) => {
                 text1: "Error",
                 text2: "An error occurred, please try again later",
               });
-              console.error(error);
+              console.log(error);
               setIsLoading(false);
             });
         })
@@ -134,7 +133,7 @@ const ChangePasswordDialog = ({ onDismiss }) => {
             text1: "Error",
             text2: "An error occurred, please try again later",
           });
-          console.error(error);
+          console.log(error);
           setIsLoading(false);
         });
     }

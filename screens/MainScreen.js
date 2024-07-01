@@ -27,7 +27,7 @@ const MainScreen = ({ navigation }) => {
         setTasks(tasks);
       })
       .catch((error) => {
-        console.error("Error fetching tasks: ", error);
+        console.log("Error fetching tasks: ", error);
       });
   };
 
@@ -58,7 +58,7 @@ const MainScreen = ({ navigation }) => {
               }
             })
             .catch((error) => {
-              console.error(error);
+              console.log(error);
               navigation.replace("Login");
             });
         }
