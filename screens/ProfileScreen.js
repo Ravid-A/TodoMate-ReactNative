@@ -2,6 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { Button, Text, Portal, Modal } from "react-native-paper";
 import { getAuth, deleteUser } from "firebase/auth";
+import {
+  getDocs,
+  deleteDoc,
+  doc,
+  getFirestore,
+  collection,
+} from "firebase/firestore";
 import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../components/AppHeader";
@@ -11,6 +18,7 @@ import Toast from "react-native-toast-message";
 
 const ProfileScreen = ({ navigation }) => {
   const auth = getAuth();
+  const db = getFirestore();
 
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
   const [initializing, setInitializing] = useState(true);
@@ -72,8 +80,19 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const deleteAccount = () => {
+    const uid = auth.currentUser.uid;
+
     deleteUser(auth.currentUser)
       .then(() => {
+        // Delete user tasks
+        getDocs(collection(db, "tasks")).then((querySnapshot) => {
+          querySnapshot.forEach((document) => {
+            if (document.data().user === uid) {
+              deleteDoc(doc(db, "tasks", document.id));
+            }
+          });
+        });
+
         Toast.show({
           type: "success",
           text1: "Success",
