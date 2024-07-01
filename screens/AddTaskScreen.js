@@ -3,15 +3,23 @@ import { View, StyleSheet, ScrollView, FlatList, Text } from "react-native";
 import { TextInput, Button, IconButton } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Toast from "react-native-toast-message";
+import { getFirestore, addDoc, collection } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 import AppHeader from "../components/AppHeader";
 
 const AddTaskScreen = ({ navigation }) => {
+  const db = getFirestore();
+  const auth = getAuth();
+
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [tasks, setTasks] = useState([{ id: 0, text: "", completed: false }]);
+  const [tasks, setTasks] = useState([
+    { id: 0, text: "", completed: false, completedBy: "" },
+  ]);
   const [nextId, setNextId] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -51,24 +59,40 @@ const AddTaskScreen = ({ navigation }) => {
       });
       return;
     }
-    // Implement save functionality
-    // dueDate as a unix timestamp
-    console.log("Saving task:", { title, tasks, dueDate: dueDate.getTime() });
-    return;
 
-    navigation.goBack();
+    setLoading(true);
+    addDoc(collection(db, "tasks"), {
+      user: auth.currentUser.uid,
+      title,
+      tasks,
+      dueDate: dueDate.getTime(),
+    })
+      .then(() => {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Task saved successfully",
+        });
+
+        navigation.goBack();
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "An error occurred while saving the task",
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const removeTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-
-    if (!tasks.length) {
-      setTasks([{ id: 0, text: "", completed: false }]);
-      setNextId(1);
-      return;
-    }
-
     setTasks((tasks) => {
+      tasks = tasks.filter((task) => task.id !== id);
+
       tasks = tasks.map((task, index) => {
         task.id = index;
         return task;
@@ -90,15 +114,17 @@ const AddTaskScreen = ({ navigation }) => {
   maxDate.setHours(0, 0, 0, 0);
 
   return (
-    <View style={styles.container}>
+    <>
       <AppHeader
         navigation={navigation}
         showActions={false}
         addGoBack={true}
         hasPreviousScreen={true}
       />
-      <ScrollView style={styles.content}>
+
+      <View style={styles.content}>
         <TextInput
+          disabled={loading}
           label="Task Title"
           value={title}
           onChangeText={setTitle}
@@ -106,12 +132,12 @@ const AddTaskScreen = ({ navigation }) => {
           style={styles.input}
         />
         <Text>Tasks</Text>
-        <FlatList
-          data={tasks}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.taskContainer}>
+
+        <ScrollView style={styles.tasksList}>
+          {tasks.map((item) => (
+            <View style={styles.taskContainer} key={item.id}>
               <TextInput
+                disabled={loading}
                 label="Task"
                 value={item.text}
                 onChangeText={(text) =>
@@ -125,18 +151,24 @@ const AddTaskScreen = ({ navigation }) => {
                 style={styles.taskInput}
               />
               <IconButton
+                disabled={loading || tasks.length === 1}
                 icon="close"
                 size={20}
                 onPress={() => removeTask(item.id)}
                 style={styles.removeButton}
               />
             </View>
-          )}
-        />
+          ))}
+        </ScrollView>
+
         <Button
+          disabled={loading}
           mode="contained"
           onPress={() => {
-            setTasks([...tasks, { id: nextId, text: "", completed: false }]);
+            setTasks([
+              ...tasks,
+              { id: nextId, text: "", completed: false, completedBy: "" },
+            ]);
             setNextId(nextId + 1);
           }}
           style={styles.button}
@@ -150,13 +182,24 @@ const AddTaskScreen = ({ navigation }) => {
           editable={false}
           style={styles.input}
         />
-        <Button mode="contained" onPress={showDatePicker} style={styles.button}>
+        <Button
+          disabled={loading}
+          mode="contained"
+          onPress={showDatePicker}
+          style={styles.button}
+        >
           Select Due Date
         </Button>
-        <Button mode="contained" onPress={handleSave} style={styles.button}>
+        <Button
+          disabled={loading}
+          mode="contained"
+          onPress={handleSave}
+          style={styles.button}
+        >
           Save Task
         </Button>
         <DateTimePickerModal
+          disabled={loading}
           isVisible={isDatePickerVisible}
           date={dueDate ? dueDate : tomorrow}
           mode="date"
@@ -165,15 +208,12 @@ const AddTaskScreen = ({ navigation }) => {
           minimumDate={tomorrow}
           maximumDate={maxDate}
         />
-      </ScrollView>
-    </View>
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   content: {
     padding: 16,
   },
@@ -182,6 +222,9 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 16,
+  },
+  tasksList: {
+    maxHeight: 200,
   },
   taskContainer: {
     flexDirection: "row",
