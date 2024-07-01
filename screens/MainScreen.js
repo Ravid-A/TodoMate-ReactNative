@@ -16,8 +16,10 @@ const MainScreen = ({ navigation }) => {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
 
+  const [loading, setLoading] = useState(false);
+
   const fetchTasks = () => {
-    // Implement fetching tasks from Firestore
+    setLoading(true);
     getDocs(collection(db, "tasks"))
       .then((querySnapshot) => {
         const tasks = [];
@@ -28,6 +30,9 @@ const MainScreen = ({ navigation }) => {
       })
       .catch((error) => {
         console.log("Error fetching tasks: ", error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -93,14 +98,16 @@ const MainScreen = ({ navigation }) => {
       />
 
       <FAB
+        disabled={loading}
         style={styles.fabRefresh}
         icon="refresh"
         onPress={() => {
-          /* Handle refresh */
+          fetchTasks();
         }}
       />
 
       <FAB
+        disabled={loading}
         style={styles.fabAddTask}
         icon="plus"
         onPress={() => {
