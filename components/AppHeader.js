@@ -51,7 +51,7 @@ const AppHeader = ({
           <Appbar.Action
             icon="account"
             onPress={onProfilePress}
-            disabled={isLoading}
+            disabled={isLoading || !onProfilePress}
           />
           <Appbar.Action
             icon="logout"
