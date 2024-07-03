@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
-import { Title, Text, Checkbox, ProgressBar } from "react-native-paper";
+import { View, StyleSheet, ScrollView } from "react-native";
+import { Title, Text, Checkbox, ProgressBar, FAB } from "react-native-paper";
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import Toast from "react-native-toast-message";
@@ -12,7 +12,6 @@ const TaskDetailsScreen = ({ route, navigation }) => {
   const { taskId } = route.params;
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [users, setUsers] = useState({});
   const db = getFirestore();
   const auth = getAuth();
@@ -69,39 +68,39 @@ const TaskDetailsScreen = ({ route, navigation }) => {
       });
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      if (!initializing) {
-        if (!user) {
-          navigation.replace("Login");
-        } else {
-          user
-            .reload()
-            .then(() => {
-              if (!user.email) {
-                navigation.replace("Login");
-              } else {
-                fetchTaskDetails();
-              }
-            })
-            .catch((error) => {
-              console.log(error);
+      fetchTaskDetails();
+
+      if (!initializing && user) {
+        user
+          .reload()
+          .then(() => {
+            if (!user.email) {
               navigation.replace("Login");
-            });
-        }
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+            navigation.replace("Login");
+          });
+      } else if (!initializing && !user) {
+        navigation.replace("Login");
       }
     }, [user, initializing, navigation])
   );
 
-  const onRefresh = useCallback(() => {
-    console.log("Refreshing task details");
-    setRefreshing(true);
+  const handleRefresh = () => {
     fetchTaskDetails();
-  }, []);
+    Toast.show({
+      type: "info",
+      text1: "Refreshing",
+      text2: "Updating task details...",
+    });
+  };
 
   const isOverdue = (dueDate) => {
     const currentDate = new Date();
@@ -166,19 +165,13 @@ const TaskDetailsScreen = ({ route, navigation }) => {
   }
 
   if (!task) {
-    navigation.goBack();
     return null;
   }
 
   return (
-    <>
+    <View style={styles.container}>
       <AppHeader navigation={navigation} showActions={true} addGoBack={true} />
-      <ScrollView
-        style={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
+      <ScrollView style={styles.scrollView}>
         <Title style={styles.title}>{task.title}</Title>
         <Text style={styles.dueDate}>
           Due: {new Date(task.dueDate).toLocaleDateString()}
@@ -216,12 +209,21 @@ const TaskDetailsScreen = ({ route, navigation }) => {
           ))}
         </View>
       </ScrollView>
-    </>
+      <FAB
+        disabled={loading}
+        style={styles.fab}
+        icon="refresh"
+        onPress={handleRefresh}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
     padding: 16,
   },
@@ -263,6 +265,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
     marginTop: 4,
+  },
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 5,
+    bottom: 10,
   },
 });
 
