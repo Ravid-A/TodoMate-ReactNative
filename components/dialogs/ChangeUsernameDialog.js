@@ -11,7 +11,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-import dismissKeyboard from "../helpers/dismissKeyboard";
+import dismissKeyboard from "../../helpers/dismissKeyboard";
 
 const ChangeUsernameDialog = ({ onDismiss }) => {
   const auth = getAuth();

@@ -4,7 +4,7 @@ import { TextInput, Button, Title, Paragraph } from "react-native-paper";
 import Toast from "react-native-toast-message";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 
-import dismissKeyboard from "../helpers/dismissKeyboard";
+import dismissKeyboard from "../../helpers/dismissKeyboard";
 
 const ForgotPasswordDialog = ({ onDismiss }) => {
   const auth = getAuth();

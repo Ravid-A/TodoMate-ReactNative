@@ -9,7 +9,7 @@ import {
   updatePassword,
 } from "firebase/auth";
 
-import dismissKeyboard from "../helpers/dismissKeyboard";
+import dismissKeyboard from "../../helpers/dismissKeyboard";
 
 const ChangePasswordDialog = ({ onDismiss }) => {
   const auth = getAuth();
