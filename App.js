@@ -15,6 +15,8 @@ import RegisterScreen from "./screens/RegisterScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import AddTaskScreen from "./screens/AddTaskScreen";
 import TaskDetailsScreen from "./screens/TaskDetailsScreen";
+import InviteScreen from "./screens/InviteScreen";
+import RemoveScreen from "./screens/RemoveScreen";
 
 import toastConfig from "./helpers/toastConfig";
 
@@ -42,6 +44,8 @@ function App() {
                   name="TaskDetails"
                   component={TaskDetailsScreen}
                 />
+                <Stack.Screen name="Invite" component={InviteScreen} />
+                <Stack.Screen name="Remove" component={RemoveScreen} />
               </Stack.Navigator>
             </SafeAreaProvider>
           </PaperProvider>

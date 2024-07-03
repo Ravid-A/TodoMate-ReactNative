@@ -13,8 +13,8 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../components/AppHeader";
-import ChangePasswordDialog from "../components/ChangePasswordDialog";
-import ChangeUsernameDialog from "../components/ChangeUsernameDialog";
+import ChangePasswordDialog from "../dialogs/ChangePasswordDialog";
+import ChangeUsernameDialog from "../dialogs/ChangeUsernameDialog";
 import Loading from "../components/Loading";
 
 import Toast from "react-native-toast-message";

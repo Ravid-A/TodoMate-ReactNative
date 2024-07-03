@@ -14,7 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import dismissKeyboard from "../helpers/dismissKeyboard";
 
 import AppHeader from "../components/AppHeader";
-import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
+import ForgotPasswordDialog from "../dialogs/ForgotPasswordDialog";
 import Loading from "../components/Loading";
 
 const LoginScreen = ({ navigation }) => {
