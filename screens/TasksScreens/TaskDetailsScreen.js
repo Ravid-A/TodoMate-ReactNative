@@ -1,15 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import {
-  Title,
-  Text,
-  ProgressBar,
-  FAB,
-  Button,
-  Portal,
-  Modal,
-} from "react-native-paper";
+import { Title, Text, ProgressBar, FAB, Button } from "react-native-paper";
 import Toast from "react-native-toast-message";
 import { useFocusEffect } from "@react-navigation/native";
 
