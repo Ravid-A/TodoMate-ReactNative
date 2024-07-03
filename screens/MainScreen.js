@@ -7,6 +7,7 @@ import { getFirestore, getDocs, collection } from "firebase/firestore";
 
 import AppHeader from "../components/AppHeader";
 import TaskItem from "../components/TaskItem";
+import Loading from "../components/Loading";
 
 const MainScreen = ({ navigation }) => {
   const auth = getAuth();
@@ -125,7 +126,8 @@ const MainScreen = ({ navigation }) => {
     }, [user, initializing, navigation])
   );
 
-  if (initializing) return null;
+  if (initializing)
+    return <Loading showActions={true} style={styles.container} />;
 
   const renderTask = ({ item }) => {
     // Implement your task item component here
@@ -172,6 +174,10 @@ const MainScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
   tasksList: {
     flex: 1,
     marginTop: 16,

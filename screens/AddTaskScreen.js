@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, ScrollView, FlatList, Text } from "react-native";
 import { TextInput, Button, IconButton } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Toast from "react-native-toast-message";
 import { getFirestore, addDoc, collection } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../components/AppHeader";
 
@@ -20,6 +21,43 @@ const AddTaskScreen = ({ navigation }) => {
   ]);
   const [nextId, setNextId] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState(null);
+
+  // Handle user state changes
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
+
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!initializing) {
+        if (!user) {
+          navigation.replace("Login");
+        } else {
+          user
+            .reload()
+            .then(() => {
+              if (!user.email) {
+                navigation.replace("Login");
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              navigation.replace("Login");
+            });
+        }
+      }
+    }, [user, initializing, navigation])
+  );
+
+  if (initializing) return null;
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -143,12 +181,7 @@ const AddTaskScreen = ({ navigation }) => {
 
   return (
     <>
-      <AppHeader
-        navigation={navigation}
-        showActions={false}
-        addGoBack={true}
-        hasPreviousScreen={true}
-      />
+      <AppHeader navigation={navigation} showActions={false} addGoBack={true} />
 
       <View style={styles.content}>
         <TextInput

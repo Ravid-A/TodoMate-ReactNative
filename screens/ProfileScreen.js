@@ -15,6 +15,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import AppHeader from "../components/AppHeader";
 import ChangePasswordDialog from "../components/ChangePasswordDialog";
 import ChangeUsernameDialog from "../components/ChangeUsernameDialog";
+import Loading from "../components/Loading";
 
 import Toast from "react-native-toast-message";
 
@@ -84,7 +85,8 @@ const ProfileScreen = ({ navigation }) => {
     }, [user, initializing, navigation])
   );
 
-  if (initializing) return null;
+  if (initializing)
+    return <Loading addGoBack={true} style={styles.container} />;
 
   const dismissDialog = () => {
     setVisibleDialog("none");
@@ -158,12 +160,8 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <AppHeader
-        navigation={navigation}
-        addGoBack={true}
-        hasPreviousScreen={true}
-      />
+    <>
+      <AppHeader navigation={navigation} addGoBack={true} />
       <View style={styles.mainContent}>
         <View style={styles.content}>
           <Text style={styles.title}>Profile</Text>
@@ -219,7 +217,7 @@ const ProfileScreen = ({ navigation }) => {
           <ChangeUsernameDialog onDismiss={dismissDialog} />
         </Modal>
       </Portal>
-    </View>
+    </>
   );
 };
 

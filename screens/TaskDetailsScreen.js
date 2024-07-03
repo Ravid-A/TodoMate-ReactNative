@@ -1,27 +1,35 @@
-import React, { useState, useCallback } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import React, { useState, useCallback, useEffect } from "react";
+import { View, StyleSheet, ScrollView, RefreshControl } from "react-native";
 import { Title, Text, Checkbox, ProgressBar } from "react-native-paper";
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import Toast from "react-native-toast-message";
 import { useFocusEffect } from "@react-navigation/native";
-
 import AppHeader from "../components/AppHeader";
+import Loading from "../components/Loading";
 
 const TaskDetailsScreen = ({ route, navigation }) => {
   const { taskId } = route.params;
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [users, setUsers] = useState({});
   const db = getFirestore();
   const auth = getAuth();
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState(null);
 
-  const isOverdue = (dueDate) => {
-    const currentDate = new Date();
-    return dueDate < currentDate.getTime();
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
   };
 
-  const fetchTaskDetails = useCallback(async () => {
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  const fetchTaskDetails = async () => {
     setLoading(true);
     try {
       const taskDoc = await getDoc(doc(db, "tasks", taskId));
@@ -29,16 +37,13 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         const taskData = { id: taskDoc.id, ...taskDoc.data() };
         setTask(taskData);
 
-        // Fetch user names for completed tasks
         const userIds = taskData.tasks
           .filter((subtask) => subtask.completedBy)
           .map((subtask) => subtask.completedBy);
-
         const uniqueUserIds = [...new Set(userIds)];
         const userPromises = uniqueUserIds.map((userId) =>
           getDoc(doc(db, "users", userId))
         );
-
         const userDocs = await Promise.all(userPromises);
         const userMap = {};
         userDocs.forEach((userDoc) => {
@@ -46,7 +51,6 @@ const TaskDetailsScreen = ({ route, navigation }) => {
             userMap[userDoc.id] = userDoc.data().username || "Unknown User";
           }
         });
-
         setUsers(userMap);
       } else {
         Toast.show({
@@ -65,14 +69,44 @@ const TaskDetailsScreen = ({ route, navigation }) => {
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [taskId, navigation, db]);
+  };
 
   useFocusEffect(
     useCallback(() => {
-      fetchTaskDetails();
-    }, [fetchTaskDetails])
+      if (!initializing) {
+        if (!user) {
+          navigation.replace("Login");
+        } else {
+          user
+            .reload()
+            .then(() => {
+              if (!user.email) {
+                navigation.replace("Login");
+              } else {
+                fetchTaskDetails();
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              navigation.replace("Login");
+            });
+        }
+      }
+    }, [user, initializing, navigation])
   );
+
+  const onRefresh = useCallback(() => {
+    console.log("Refreshing task details");
+    setRefreshing(true);
+    fetchTaskDetails();
+  }, []);
+
+  const isOverdue = (dueDate) => {
+    const currentDate = new Date();
+    return dueDate < currentDate.getTime();
+  };
 
   const handleSubtaskToggle = async (subtaskId) => {
     if (!task) return;
@@ -91,7 +125,6 @@ const TaskDetailsScreen = ({ route, navigation }) => {
       await updateDoc(doc(db, "tasks", taskId), { tasks: updatedSubtasks });
       setTask({ ...task, tasks: updatedSubtasks });
 
-      // Update users state if necessary
       if (!users[auth.currentUser.uid]) {
         const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
         if (userDoc.exists()) {
@@ -126,34 +159,26 @@ const TaskDetailsScreen = ({ route, navigation }) => {
     return completedTasks / task.tasks.length;
   };
 
+  if (initializing) return <Loading showActions={true} addGoBack={true} />;
+
   if (loading) {
-    return (
-      <>
-        <AppHeader
-          navigation={navigation}
-          showActions={true}
-          addGoBack={true}
-          hasPreviousScreen={true}
-        />
-        <View style={styles.container} />
-      </>
-    );
+    return <Loading addGoBack={true} showActions={true} />;
   }
 
   if (!task) {
     navigation.goBack();
-    return;
+    return null;
   }
 
   return (
     <>
-      <AppHeader
-        navigation={navigation}
-        showActions={true}
-        addGoBack={true}
-        hasPreviousScreen={true}
-      />
-      <ScrollView style={styles.container}>
+      <AppHeader navigation={navigation} showActions={true} addGoBack={true} />
+      <ScrollView
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Title style={styles.title}>{task.title}</Title>
         <Text style={styles.dueDate}>
           Due: {new Date(task.dueDate).toLocaleDateString()}

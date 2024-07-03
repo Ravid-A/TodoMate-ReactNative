@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import {
   TextInput as PaperTextInput,
@@ -15,6 +15,7 @@ import dismissKeyboard from "../helpers/dismissKeyboard";
 
 import AppHeader from "../components/AppHeader";
 import ForgotPasswordDialog from "../components/ForgotPasswordDialog";
+import Loading from "../components/Loading";
 
 const LoginScreen = ({ navigation }) => {
   const auth = getAuth();
@@ -23,25 +24,41 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [isForgotPasswordVisible, setIsForgotPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState(null);
 
-  useFocusEffect(() => {
-    console.log("LoginScreen focused");
-    // Check if user is not authenticated
-    const user = auth.currentUser;
+  // Handle user state changes
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
 
-    if (!user) {
-      return;
-    }
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
 
-    user
-      .reload()
-      .then(() => {
-        navigation.replace("Main");
-      })
-      .catch(() => {
-        return;
-      });
-  });
+  useFocusEffect(
+    useCallback(() => {
+      if (!initializing) {
+        if (user) {
+          user
+            .reload()
+            .then(() => {
+              if (user.email && !isLoading) {
+                navigation.replace("Main");
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+      }
+    }, [user, initializing, navigation])
+  );
+
+  if (initializing)
+    return <Loading showActions={false} style={styles.content} />;
 
   const handleLoginPress = () => {
     if (!email || !password) {
@@ -98,7 +115,7 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <>
       <AppHeader showActions={false} />
 
       <View style={styles.content}>
@@ -154,14 +171,11 @@ const LoginScreen = ({ navigation }) => {
           />
         </Modal>
       </Portal>
-    </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     padding: 16,

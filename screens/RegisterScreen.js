@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
@@ -9,6 +9,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import dismissKeyboard from "../helpers/dismissKeyboard";
 
 import AppHeader from "../components/AppHeader";
+import Loading from "../components/Loading";
 
 const RegisterScreen = ({ navigation }) => {
   const auth = getAuth();
@@ -19,6 +20,8 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState(null);
 
   const isUsernameValid = (username) => {
     return (
@@ -29,23 +32,38 @@ const RegisterScreen = ({ navigation }) => {
     );
   };
 
-  useFocusEffect(() => {
-    // Check if user is not authenticated
-    const user = auth.currentUser;
+  // Handle user state changes
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
 
-    if (!user) {
-      return;
-    }
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
 
-    user
-      .reload()
-      .then(() => {
-        navigation.replace("Main");
-      })
-      .catch(() => {
-        return;
-      });
-  });
+  useFocusEffect(
+    useCallback(() => {
+      if (!initializing) {
+        if (user) {
+          user
+            .reload()
+            .then(() => {
+              if (user.email && !isLoading) {
+                navigation.replace("Main");
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        }
+      }
+    }, [user, initializing, navigation])
+  );
+
+  if (initializing)
+    return <Loading addGoBack={true} style={styles.container} />;
 
   const handleRegisterPress = () => {
     if (!username || !email || !password || !confirmPassword) {
@@ -94,11 +112,11 @@ const RegisterScreen = ({ navigation }) => {
     }
 
     if (password.includes(" ")) {
-      Toast.makeText(
-        this,
-        "Password should not contain spaces",
-        Toast.LENGTH_SHORT
-      ).show();
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Password should not contain spaces",
+      });
       return;
     }
 
@@ -164,7 +182,7 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <>
       <AppHeader showActions={false} />
 
       <View style={styles.content}>
@@ -221,7 +239,7 @@ const RegisterScreen = ({ navigation }) => {
           <Text style={styles.register}>Already have an account? Login</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </>
   );
 };
 
@@ -241,9 +259,8 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   register: {
-    textAlign: "right",
-    color: "#6200ee",
     textAlign: "center",
+    color: "#6200ee",
     marginTop: 24,
   },
 });
