@@ -7,7 +7,7 @@ import { getFirestore, addDoc, collection } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useFocusEffect } from "@react-navigation/native";
 
-import AppHeader from "../components/AppHeader";
+import AppHeader from "../../components/AppHeader";
 
 const AddTaskScreen = ({ navigation }) => {
   const db = getFirestore();

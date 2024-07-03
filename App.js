@@ -10,13 +10,13 @@ import Toast from "react-native-toast-message";
 import "./helpers/firebase";
 
 import MainScreen from "./screens/MainScreen";
-import LoginScreen from "./screens/LoginScreen";
-import RegisterScreen from "./screens/RegisterScreen";
-import ProfileScreen from "./screens/ProfileScreen";
-import AddTaskScreen from "./screens/AddTaskScreen";
-import TaskDetailsScreen from "./screens/TaskDetailsScreen";
-import InviteScreen from "./screens/InviteScreen";
-import RemoveScreen from "./screens/RemoveScreen";
+import LoginScreen from "./screens/UserScreens/LoginScreen";
+import RegisterScreen from "./screens/UserScreens/RegisterScreen";
+import ProfileScreen from "./screens/UserScreens/ProfileScreen";
+import AddTaskScreen from "./screens/TasksScreens/AddTaskScreen";
+import TaskDetailsScreen from "./screens/TasksScreens/TaskDetailsScreen";
+import InviteScreen from "./screens/TasksScreens/InviteScreen";
+import RemoveScreen from "./screens/TasksScreens/RemoveScreen";
 
 import toastConfig from "./helpers/toastConfig";
 

@@ -24,8 +24,8 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-import AppHeader from "../components/AppHeader";
-import Loading from "../components/Loading";
+import AppHeader from "../../components/AppHeader";
+import Loading from "../../components/Loading";
 
 const TaskDetailsScreen = ({ route, navigation }) => {
   const db = getFirestore();

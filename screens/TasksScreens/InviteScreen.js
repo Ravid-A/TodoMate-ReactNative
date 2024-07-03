@@ -18,8 +18,8 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-import AppHeader from "../components/AppHeader";
-import dismissKeyboard from "../helpers/dismissKeyboard";
+import AppHeader from "../../components/AppHeader";
+import dismissKeyboard from "../../helpers/dismissKeyboard";
 
 const InviteScreen = ({ navigation, route }) => {
   const { taskId } = route.params;

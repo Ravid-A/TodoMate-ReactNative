@@ -6,10 +6,10 @@ import { getFirestore, doc, setDoc } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import { useFocusEffect } from "@react-navigation/native";
 
-import dismissKeyboard from "../helpers/dismissKeyboard";
+import dismissKeyboard from "../../helpers/dismissKeyboard";
 
-import AppHeader from "../components/AppHeader";
-import Loading from "../components/Loading";
+import AppHeader from "../../components/AppHeader";
+import Loading from "../../components/Loading";
 
 const RegisterScreen = ({ navigation }) => {
   const auth = getAuth();

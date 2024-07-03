@@ -12,10 +12,10 @@ import {
 } from "firebase/firestore";
 import { useFocusEffect } from "@react-navigation/native";
 
-import AppHeader from "../components/AppHeader";
-import ChangePasswordDialog from "../dialogs/ChangePasswordDialog";
-import ChangeUsernameDialog from "../dialogs/ChangeUsernameDialog";
-import Loading from "../components/Loading";
+import AppHeader from "../../components/AppHeader";
+import ChangePasswordDialog from "../../components/dialogs/ChangePasswordDialog";
+import ChangeUsernameDialog from "../../components/dialogs/ChangeUsernameDialog";
+import Loading from "../../components/Loading";
 
 import Toast from "react-native-toast-message";
 

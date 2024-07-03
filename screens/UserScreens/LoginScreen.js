@@ -11,11 +11,11 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import Toast from "react-native-toast-message";
 import { useFocusEffect } from "@react-navigation/native";
 
-import dismissKeyboard from "../helpers/dismissKeyboard";
+import dismissKeyboard from "../../helpers/dismissKeyboard";
 
-import AppHeader from "../components/AppHeader";
-import ForgotPasswordDialog from "../dialogs/ForgotPasswordDialog";
-import Loading from "../components/Loading";
+import AppHeader from "../../components/AppHeader";
+import ForgotPasswordDialog from "../../components/dialogs/ForgotPasswordDialog";
+import Loading from "../../components/Loading";
 
 const LoginScreen = ({ navigation }) => {
   const auth = getAuth();
