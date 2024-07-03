@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, StyleSheet, FlatList, Text } from "react-native";
 import {
   TextInput,
@@ -17,9 +17,11 @@ import {
   addDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../../components/AppHeader";
 import dismissKeyboard from "../../helpers/dismissKeyboard";
+import Loading from "../../components/Loading";
 
 const InviteScreen = ({ navigation, route }) => {
   const { taskId } = route.params;
@@ -27,10 +29,48 @@ const InviteScreen = ({ navigation, route }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
 
   const db = getFirestore();
   const auth = getAuth();
   const currentUser = auth.currentUser;
+
+  // Handle user state changes
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
+
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  // Redirect to login if not initialized or user is not authenticated
+  useFocusEffect(
+    useCallback(() => {
+      if (!initializing) {
+        if (!user) {
+          navigation.replace("Login");
+        } else {
+          // Fetch tasks
+          user
+            .reload()
+            .then(() => {
+              if (!user.email) {
+                navigation.replace("Login");
+              }
+            })
+            .catch((error) => {
+              console.log("Error reloading user");
+              console.log(error);
+              navigation.replace("Login");
+            });
+        }
+      }
+    }, [user, initializing, navigation])
+  );
 
   useEffect(() => {
     handleSearch("");
@@ -48,7 +88,9 @@ const InviteScreen = ({ navigation, route }) => {
       const q = query(
         usersRef,
         where("email", ">=", text.toLowerCase()),
-        where("email", "<=", text.toLowerCase() + "\uf8ff")
+        where("email", "<=", text.toLowerCase() + "\uf8ff"),
+        where("username", ">=", text.toLowerCase()),
+        where("username", "<=", text.toLowerCase() + "\uf8ff")
       );
       const querySnapshot = await getDocs(q);
 
@@ -118,6 +160,11 @@ const InviteScreen = ({ navigation, route }) => {
       left={(props) => <List.Icon {...props} icon="account" />}
     />
   );
+
+  if (initializing)
+    return (
+      <Loading showActions={false} addGoBack={true} style={styles.content} />
+    );
 
   return (
     <>
@@ -190,13 +237,6 @@ const InviteScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     padding: 16,

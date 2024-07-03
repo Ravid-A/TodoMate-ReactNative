@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, StyleSheet, FlatList, Text } from "react-native";
 import {
   TextInput,
@@ -15,13 +15,15 @@ import {
   doc,
   where,
   getDocs,
-  getDoc,
   deleteDoc,
+  getDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../../components/AppHeader";
 import dismissKeyboard from "../../helpers/dismissKeyboard";
+import Loading from "../../components/Loading";
 
 const RemoveScreen = ({ navigation, route }) => {
   const { taskId } = route.params;
@@ -29,10 +31,52 @@ const RemoveScreen = ({ navigation, route }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
 
   const db = getFirestore();
   const auth = getAuth();
   const currentUser = auth.currentUser;
+
+  // Handle user state changes
+  const onAuthStateChanged = (user) => {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  };
+
+  useEffect(() => {
+    const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  // Redirect to login if not initialized or user is not authenticated
+  useFocusEffect(
+    useCallback(() => {
+      if (!initializing) {
+        if (!user) {
+          navigation.replace("Login");
+        } else {
+          // Fetch tasks
+          user
+            .reload()
+            .then(() => {
+              if (!user.email) {
+                navigation.replace("Login");
+              }
+            })
+            .catch((error) => {
+              console.log("Error reloading user");
+              console.log(error);
+              navigation.replace("Login");
+            });
+        }
+      }
+    }, [user, initializing, navigation])
+  );
+
+  useEffect(() => {
+    fetchInvitedUsers("");
+  }, []);
 
   const fetchInvitedUsers = async (queryText) => {
     setIsLoading(true);
@@ -42,32 +86,24 @@ const RemoveScreen = ({ navigation, route }) => {
 
     try {
       const tasksUsersSnapshot = await getDocs(tasksUsersQuery);
-      const invitedUserIds = tasksUsersSnapshot.docs.map(
-        (doc) => doc.data().user
+      const userIds = tasksUsersSnapshot.docs.map((doc) => doc.data().user);
+
+      // Fetch user data for each invited user
+      const usersPromises = userIds.map(async (userId) => {
+        const userDoc = await getDoc(doc(usersRef, userId));
+        return { id: userDoc.id, ...userDoc.data() };
+      });
+
+      const users = await Promise.all(usersPromises);
+
+      // Filter users based on query text
+      const filteredUsers = users.filter(
+        (user) =>
+          user.email.toLowerCase().includes(queryText.toLowerCase()) ||
+          user.username.toLowerCase().includes(queryText.toLowerCase())
       );
 
-      if (invitedUserIds.length === 0) {
-        setSearchResults([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const users = [];
-      for (const userId of invitedUserIds) {
-        const userDoc = await getDoc(doc(usersRef, userId));
-        if (userDoc.exists()) {
-          users.push({ id: userDoc.id, ...userDoc.data() });
-        }
-      }
-
-      if (queryText) {
-        const filteredUsers = users.filter((user) =>
-          user.email.toLowerCase().includes(queryText.toLowerCase())
-        );
-        setSearchResults(filteredUsers);
-      } else {
-        setSearchResults(users);
-      }
+      setSearchResults(filteredUsers);
     } catch (error) {
       console.error("Error fetching invited users:", error);
       Toast.show({
@@ -80,10 +116,6 @@ const RemoveScreen = ({ navigation, route }) => {
     }
   };
 
-  useEffect(() => {
-    fetchInvitedUsers("");
-  }, []);
-
   const handleSearch = (text) => {
     setSearchQuery(text);
     fetchInvitedUsers(text);
@@ -91,21 +123,22 @@ const RemoveScreen = ({ navigation, route }) => {
 
   const handleSelectUser = (user) => {
     setSelectedUser(user);
-    setSearchQuery("");
-    setSearchResults([]);
   };
 
   const handleRemove = async () => {
     if (selectedUser) {
       try {
+        // Find the task user document to delete
         const tasksUsersRef = collection(db, "tasks_users");
-        const tasksUsersQuery = query(
+        const q = query(
           tasksUsersRef,
           where("task", "==", taskId),
           where("user", "==", selectedUser.id)
         );
-        const tasksUsersSnapshot = await getDocs(tasksUsersQuery);
-        tasksUsersSnapshot.forEach(async (doc) => {
+        const querySnapshot = await getDocs(q);
+
+        // Delete the task user document
+        querySnapshot.forEach(async (doc) => {
           await deleteDoc(doc.ref);
         });
 
@@ -114,17 +147,14 @@ const RemoveScreen = ({ navigation, route }) => {
           text1: "Success",
           text2: `Removed ${selectedUser.email} from the task`,
         });
-
         setSelectedUser(null);
-        fetchInvitedUsers("");
-
-        navigation.goBack();
+        fetchInvitedUsers(searchQuery);
       } catch (error) {
-        console.error("Error removing user:", error);
+        console.error("Error removing user from task:", error);
         Toast.show({
           type: "error",
           text1: "Error",
-          text2: "Failed to remove user",
+          text2: "Failed to remove user from task",
         });
       }
     }
@@ -132,12 +162,18 @@ const RemoveScreen = ({ navigation, route }) => {
 
   const renderUserItem = ({ item }) => (
     <List.Item
+      key={item.id}
       title={item.username || item.email}
       description={item.email}
       onPress={() => handleSelectUser(item)}
       left={(props) => <List.Icon {...props} icon="account" />}
     />
   );
+
+  if (initializing)
+    return (
+      <Loading showActions={false} addGoBack={true} style={styles.content} />
+    );
 
   return (
     <>
@@ -160,7 +196,6 @@ const RemoveScreen = ({ navigation, route }) => {
           style={styles.input}
           onSubmitEditing={dismissKeyboard}
           left={<TextInput.Icon icon="magnify" />}
-          disabled={!!selectedUser}
         />
 
         {selectedUser ? (
@@ -182,7 +217,7 @@ const RemoveScreen = ({ navigation, route }) => {
             />
           </View>
         ) : isLoading ? (
-          <Paragraph>Searching...</Paragraph>
+          <Paragraph>Fetching...</Paragraph>
         ) : (
           <FlatList
             data={searchResults}
@@ -210,13 +245,6 @@ const RemoveScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  container: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     padding: 16,
