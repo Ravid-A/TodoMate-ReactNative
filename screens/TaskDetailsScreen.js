@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Title, Text, Checkbox, ProgressBar, FAB } from "react-native-paper";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Title, Text, ProgressBar, FAB } from "react-native-paper";
 import { getFirestore, doc, updateDoc, getDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import Toast from "react-native-toast-message";
@@ -110,19 +111,44 @@ const TaskDetailsScreen = ({ route, navigation }) => {
   const handleSubtaskToggle = async (subtaskId) => {
     if (!task) return;
 
-    const updatedSubtasks = task.tasks.map((subtask) =>
-      subtask.id === subtaskId
-        ? {
-            ...subtask,
-            completed: !subtask.completed,
-            completedBy: !subtask.completed ? auth.currentUser.uid : null,
-          }
-        : subtask
-    );
-
     try {
+      // Fetch the latest task data from Firestore
+      const taskDoc = await getDoc(doc(db, "tasks", taskId));
+      if (!taskDoc.exists()) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Task not found",
+        });
+        return;
+      }
+
+      const currentTaskData = taskDoc.data();
+      const subtask = currentTaskData.tasks.find((st) => st.id === subtaskId);
+
+      if (subtask.completed) {
+        Toast.show({
+          type: "info",
+          text1: "Already Completed",
+          text2: "This subtask has already been completed.",
+        });
+        return;
+      }
+
+      const updatedSubtasks = currentTaskData.tasks.map((st) =>
+        st.id === subtaskId
+          ? {
+              ...st,
+              completed: true,
+              completedBy: auth.currentUser.uid,
+            }
+          : st
+      );
+
       await updateDoc(doc(db, "tasks", taskId), { tasks: updatedSubtasks });
-      setTask({ ...task, tasks: updatedSubtasks });
+
+      // Update local state
+      setTask({ ...currentTaskData, tasks: updatedSubtasks });
 
       if (!users[auth.currentUser.uid]) {
         const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
@@ -138,14 +164,14 @@ const TaskDetailsScreen = ({ route, navigation }) => {
       Toast.show({
         type: "success",
         text1: "Success",
-        text2: "Task updated successfully",
+        text2: "Subtask marked as completed",
       });
     } catch (error) {
       console.error("Error updating task:", error);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2: "Failed to update task",
+        text2: "Failed to update subtask",
       });
     }
   };
@@ -187,12 +213,25 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         <View style={styles.subtasksContainer}>
           {task.tasks.map((subtask) => (
             <View key={subtask.id} style={styles.subtaskItem}>
-              <Checkbox
-                disabled={subtask.completed || isOverdue(task.dueDate)}
-                status={subtask.completed ? "checked" : "unchecked"}
+              <TouchableOpacity
                 onPress={() => handleSubtaskToggle(subtask.id)}
-                color="#007AFF"
-              />
+                disabled={subtask.completed || isOverdue(task.dueDate)}
+              >
+                <MaterialCommunityIcons
+                  name={
+                    subtask.completed
+                      ? "checkbox-marked"
+                      : "checkbox-blank-outline"
+                  }
+                  size={32}
+                  color={
+                    subtask.completed || isOverdue(task.dueDate)
+                      ? "#999"
+                      : "#007AFF"
+                  }
+                  style={styles.checkbox}
+                />
+              </TouchableOpacity>
               <View style={styles.subtaskTextContainer}>
                 <Text style={styles.subtaskText}>{subtask.text}</Text>
                 <Text style={styles.completedByText}>
@@ -271,6 +310,10 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 5,
     bottom: 10,
+  },
+  checkbox: {
+    marginTop: 4,
+    marginRight: 4,
   },
 });
 
