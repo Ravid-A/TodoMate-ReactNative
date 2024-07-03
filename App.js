@@ -43,12 +43,7 @@ function App() {
             </SafeAreaProvider>
           </PaperProvider>
         </NavigationContainer>
-        <Toast
-          config={toastConfig}
-          style={{ zIndex: 100000000 }}
-          position="bottom"
-          visibilityTime={2000}
-        />
+        <Toast config={toastConfig} position="bottom" visibilityTime={2000} />
       </View>
     </TouchableWithoutFeedback>
   );

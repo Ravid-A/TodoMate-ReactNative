@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, StyleSheet, FlatList, Text } from "react-native";
+import { StyleSheet, FlatList } from "react-native";
 import { FAB } from "react-native-paper";
 import { getAuth } from "firebase/auth";
 import { getFirestore, getDocs, collection } from "firebase/firestore";
 
 import AppHeader from "../components/AppHeader";
+import TaskItem from "../components/TaskItem";
 
 const MainScreen = ({ navigation }) => {
   const auth = getAuth();
@@ -18,15 +19,69 @@ const MainScreen = ({ navigation }) => {
 
   const [loading, setLoading] = useState(false);
 
+  const currentDate = new Date();
+
   const fetchTasks = () => {
+    const getCompleteRatio = (tasks) => {
+      const completedTasks = tasks.filter((task) => task.completed).length;
+      const totalTasks = tasks.length;
+      return totalTasks > 0 ? completedTasks / totalTasks : 0;
+    };
+
+    const isOverdue = (dueDate) => {
+      console.log(dueDate, currentDate.getTime());
+      return dueDate < currentDate.getTime();
+    };
+
+    if (!user) {
+      return;
+    }
+
     setLoading(true);
     getDocs(collection(db, "tasks"))
       .then((querySnapshot) => {
         const tasks = [];
+        const not_user_tasks = [];
         querySnapshot.forEach((doc) => {
-          tasks.push({ id: doc.id, ...doc.data() });
+          const taskData = doc.data();
+
+          if (taskData.user != user.uid) {
+            not_user_tasks.push({ id: doc.id, ...taskData });
+            return;
+          }
+
+          tasks.push({ id: doc.id, ...taskData });
         });
-        setTasks(tasks);
+
+        getDocs(collection(db, "tasks_users")).then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const taskUser = doc.data();
+
+            const task = not_user_tasks.find(
+              (task) => task.id === taskUser.task && taskUser.user === user.uid
+            );
+
+            if (task) {
+              tasks.push({ id: task.id, ...task });
+            }
+          });
+
+          tasks.sort((a, b) => {
+            return getCompleteRatio(a.tasks) - getCompleteRatio(b.tasks);
+          });
+
+          tasks.sort((a, b) => {
+            if (isOverdue(a.dueDate) && !isOverdue(b.dueDate)) {
+              return 1;
+            }
+            if (isOverdue(b.dueDate) && !isOverdue(a.dueDate)) {
+              return -1;
+            }
+            return 0;
+          });
+
+          setTasks(tasks);
+        });
       })
       .catch((error) => {
         console.log("Error fetching tasks: ", error);
@@ -75,11 +130,7 @@ const MainScreen = ({ navigation }) => {
 
   const renderTask = ({ item }) => {
     // Implement your task item component here
-    return (
-      <View>
-        <Text>{item.title}</Text>
-      </View>
-    );
+    return <TaskItem {...item} />;
   };
 
   const handleProfilePress = () => {
@@ -121,6 +172,7 @@ const MainScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   tasksList: {
     flex: 1,
+    marginTop: 16,
   },
   fabRefresh: {
     position: "absolute",

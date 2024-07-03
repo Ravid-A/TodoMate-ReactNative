@@ -4,6 +4,7 @@ import { Button, Text, Portal, Modal } from "react-native-paper";
 import { getAuth, deleteUser } from "firebase/auth";
 import {
   getDocs,
+  getDoc,
   deleteDoc,
   doc,
   getFirestore,
@@ -13,6 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../components/AppHeader";
 import ChangePasswordDialog from "../components/ChangePasswordDialog";
+import ChangeUsernameDialog from "../components/ChangeUsernameDialog";
 
 import Toast from "react-native-toast-message";
 
@@ -20,9 +22,10 @@ const ProfileScreen = ({ navigation }) => {
   const auth = getAuth();
   const db = getFirestore();
 
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
+  const [visibleDialog, setVisibleDialog] = useState("none");
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   // Handle user state changes
   const onAuthStateChanged = (user) => {
@@ -34,6 +37,28 @@ const ProfileScreen = ({ navigation }) => {
     const subscriber = auth.onAuthStateChanged(onAuthStateChanged);
     return subscriber; // unsubscribe on unmount
   }, []);
+
+  const fetchUserData = () => {
+    if (!user) return;
+
+    setInitializing(true);
+    getDoc(doc(db, "users", user.uid))
+      .then((doc) => {
+        if (doc.exists()) {
+          setUserData(doc.data());
+        }
+      })
+      .catch((error) => {
+        console.log("Error getting user:", error);
+      })
+      .finally(() => {
+        setInitializing(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -60,6 +85,11 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   if (initializing) return null;
+
+  const dismissDialog = () => {
+    setVisibleDialog("none");
+    fetchUserData();
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -136,9 +166,24 @@ const ProfileScreen = ({ navigation }) => {
       />
       <View style={styles.mainContent}>
         <View style={styles.content}>
-          <Text style={styles.title}>Connected as:</Text>
-          <Text style={styles.subtitle}>{user?.email || "user@email.com"}</Text>
+          <Text style={styles.title}>Profile</Text>
+          <Text style={styles.subtitle}>
+            <Text style={styles.subtitle_prop}>Username:</Text>{" "}
+            {userData && userData.username}
+          </Text>
+          <Text style={styles.subtitle}>
+            <Text style={styles.subtitle_prop}>Email:</Text>{" "}
+            {user && user.email}
+          </Text>
         </View>
+
+        <Button
+          mode="contained"
+          onPress={() => setVisibleDialog("changeUsername")}
+          style={styles.button}
+        >
+          Change Username
+        </Button>
 
         <Button
           mode="contained"
@@ -150,7 +195,7 @@ const ProfileScreen = ({ navigation }) => {
 
         <Button
           mode="contained"
-          onPress={() => setIsChangePasswordVisible(true)}
+          onPress={() => setVisibleDialog("changePassword")}
           style={styles.button}
         >
           Change Password
@@ -159,13 +204,19 @@ const ProfileScreen = ({ navigation }) => {
 
       <Portal>
         <Modal
-          visible={isChangePasswordVisible}
-          onDismiss={() => setIsChangePasswordVisible(false)}
+          visible={visibleDialog === "changePassword"}
+          onDismiss={dismissDialog}
           contentContainerStyle={styles.modalContainer}
         >
-          <ChangePasswordDialog
-            onDismiss={() => setIsChangePasswordVisible(false)}
-          />
+          <ChangePasswordDialog onDismiss={dismissDialog} />
+        </Modal>
+
+        <Modal
+          visible={visibleDialog === "changeUsername"}
+          onDismiss={dismissDialog}
+          contentContainerStyle={styles.modalContainer}
+        >
+          <ChangeUsernameDialog onDismiss={dismissDialog} />
         </Modal>
       </Portal>
     </View>
@@ -187,12 +238,19 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     marginBottom: 8,
+    textDecorationLine: "underline",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   subtitle: {
-    fontSize: 32,
+    fontSize: 24,
     marginBottom: 16,
+  },
+  subtitle_prop: {
+    fontWeight: "bold",
+    textDecorationLine: "underline",
   },
   button: {
     marginTop: 16,

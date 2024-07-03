@@ -103,6 +103,34 @@ const AddTaskScreen = ({ navigation }) => {
     });
   };
 
+  const renderItem = ({ item }) => {
+    return (
+      <View style={styles.taskContainer} key={item.id}>
+        <TextInput
+          disabled={loading}
+          label="Task"
+          value={item.text}
+          onChangeText={(text) =>
+            setTasks(
+              tasks.map((task) =>
+                task.id === item.id ? { ...task, text } : task
+              )
+            )
+          }
+          mode="outlined"
+          style={styles.taskInput}
+        />
+        <IconButton
+          disabled={loading || tasks.length === 1}
+          icon="close"
+          size={20}
+          onPress={() => removeTask(item.id)}
+          style={styles.removeButton}
+        />
+      </View>
+    );
+  };
+
   // Get tomorrow's date
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -133,33 +161,12 @@ const AddTaskScreen = ({ navigation }) => {
         />
         <Text>Tasks</Text>
 
-        <ScrollView style={styles.tasksList}>
-          {tasks.map((item) => (
-            <View style={styles.taskContainer} key={item.id}>
-              <TextInput
-                disabled={loading}
-                label="Task"
-                value={item.text}
-                onChangeText={(text) =>
-                  setTasks(
-                    tasks.map((task) =>
-                      task.id === item.id ? { ...task, text } : task
-                    )
-                  )
-                }
-                mode="outlined"
-                style={styles.taskInput}
-              />
-              <IconButton
-                disabled={loading || tasks.length === 1}
-                icon="close"
-                size={20}
-                onPress={() => removeTask(item.id)}
-                style={styles.removeButton}
-              />
-            </View>
-          ))}
-        </ScrollView>
+        <FlatList
+          data={tasks}
+          keyExtractor={(item) => item.id.toString()}
+          style={styles.tasksList}
+          renderItem={renderItem}
+        />
 
         <Button
           disabled={loading}

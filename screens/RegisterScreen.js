@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import { TextInput as PaperTextInput, Button } from "react-native-paper";
+import { TextInput, Button } from "react-native-paper";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
 import Toast from "react-native-toast-message";
@@ -14,10 +14,20 @@ const RegisterScreen = ({ navigation }) => {
   const auth = getAuth();
   const db = getFirestore();
 
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const isUsernameValid = (username) => {
+    return (
+      username.length >= 3 &&
+      username.length <= 20 &&
+      /^[a-zA-Z0-9_]+$/.test(username) &&
+      !username.includes(" ")
+    );
+  };
 
   useFocusEffect(() => {
     // Check if user is not authenticated
@@ -38,11 +48,20 @@ const RegisterScreen = ({ navigation }) => {
   });
 
   const handleRegisterPress = () => {
-    if (!email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       Toast.show({
         type: "error",
         text1: "Error",
         text2: "Please fill in all fields",
+      });
+      return;
+    }
+
+    if (!isUsernameValid(username)) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Username cannot contain spaces",
       });
       return;
     }
@@ -99,6 +118,7 @@ const RegisterScreen = ({ navigation }) => {
 
         setDoc(doc(db, "users", user.uid), {
           email: user.email,
+          username,
         });
 
         Toast.show({
@@ -148,7 +168,17 @@ const RegisterScreen = ({ navigation }) => {
       <AppHeader showActions={false} />
 
       <View style={styles.content}>
-        <PaperTextInput
+        <TextInput
+          label="Username"
+          value={username}
+          onChangeText={(text) => setUsername(text)}
+          style={styles.input}
+          mode="outlined"
+          onSubmitEditing={() => dismissKeyboard(handleRegisterPress)}
+          disabled={isLoading}
+        />
+
+        <TextInput
           label="Email"
           value={email}
           onChangeText={(text) => setEmail(text)}
@@ -158,7 +188,7 @@ const RegisterScreen = ({ navigation }) => {
           onSubmitEditing={() => dismissKeyboard(handleRegisterPress)}
           disabled={isLoading}
         />
-        <PaperTextInput
+        <TextInput
           label="Password"
           value={password}
           onChangeText={(text) => setPassword(text)}
@@ -168,7 +198,7 @@ const RegisterScreen = ({ navigation }) => {
           onSubmitEditing={() => dismissKeyboard(handleRegisterPress)}
           disabled={isLoading}
         />
-        <PaperTextInput
+        <TextInput
           label="Confirm Password"
           value={confirmPassword}
           onChangeText={(text) => setConfirmPassword(text)}
