@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { TextInput, Button, Title, Paragraph } from "react-native-paper";
 import Toast from "react-native-toast-message";

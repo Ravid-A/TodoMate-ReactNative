@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import {
   TextInput as PaperTextInput,
