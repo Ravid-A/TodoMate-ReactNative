@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { StyleSheet, FlatList } from "react-native";
+import { StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { FAB } from "react-native-paper";
 import { getAuth } from "firebase/auth";
 import { getFirestore, getDocs, collection } from "firebase/firestore";
@@ -29,7 +29,6 @@ const MainScreen = ({ navigation }) => {
     };
 
     const isOverdue = (dueDate) => {
-      console.log(dueDate, currentDate.getTime());
       return dueDate < currentDate.getTime();
     };
 
@@ -130,7 +129,15 @@ const MainScreen = ({ navigation }) => {
 
   const renderTask = ({ item }) => {
     // Implement your task item component here
-    return <TaskItem {...item} />;
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate("TaskDetails", { taskId: item.id });
+        }}
+      >
+        <TaskItem {...item} />
+      </TouchableOpacity>
+    );
   };
 
   const handleProfilePress = () => {
@@ -141,12 +148,7 @@ const MainScreen = ({ navigation }) => {
     <>
       <AppHeader navigation={navigation} onProfilePress={handleProfilePress} />
 
-      <FlatList
-        data={tasks}
-        renderItem={renderTask}
-        keyExtractor={(item) => item.id}
-        style={styles.tasksList}
-      />
+      <FlatList data={tasks} renderItem={renderTask} style={styles.tasksList} />
 
       <FAB
         disabled={loading}

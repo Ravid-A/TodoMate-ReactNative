@@ -14,7 +14,7 @@ import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import AddTaskScreen from "./screens/AddTaskScreen";
-// import TaskDetailsScreen from "./screens/TaskDetailsScreen";
+import TaskDetailsScreen from "./screens/TaskDetailsScreen";
 
 import toastConfig from "./helpers/toastConfig";
 
@@ -38,7 +38,10 @@ function App() {
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="Profile" component={ProfileScreen} />
                 <Stack.Screen name="AddTask" component={AddTaskScreen} />
-                {/* <Stack.Screen name="TaskDetails" component={TaskDetailsScreen} /> */}
+                <Stack.Screen
+                  name="TaskDetails"
+                  component={TaskDetailsScreen}
+                />
               </Stack.Navigator>
             </SafeAreaProvider>
           </PaperProvider>
