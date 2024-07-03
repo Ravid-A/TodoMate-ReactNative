@@ -198,7 +198,15 @@ const TaskDetailsScreen = ({ route, navigation }) => {
     <View style={styles.container}>
       <AppHeader navigation={navigation} showActions={true} addGoBack={true} />
       <ScrollView style={styles.scrollView}>
-        <Title style={styles.title}>{task.title}</Title>
+        <Title style={styles.title}>
+          {task.title}
+          {isOverdue(task.dueDate) && (
+            <Text style={{ color: "red", marginLeft: 8, fontWeight: "bold" }}>
+              {" "}
+              (Overdue)
+            </Text>
+          )}
+        </Title>
         <Text style={styles.dueDate}>
           Due: {new Date(task.dueDate).toLocaleDateString()}
         </Text>
