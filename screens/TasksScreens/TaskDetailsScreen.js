@@ -87,7 +87,7 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         navigation.goBack();
       }
     } catch (error) {
-      console.error("Error fetching task:", error);
+      console.log("Error fetching task:", error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -193,7 +193,7 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         text2: "Subtask marked as completed",
       });
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.log("Error updating task:", error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -261,7 +261,7 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         });
       })
       .catch((error) => {
-        console.error("Error leaving task:", error);
+        console.log("Error leaving task:", error);
         Toast.show({
           type: "error",
           text1: "Error",

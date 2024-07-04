@@ -111,7 +111,7 @@ const InviteScreen = ({ navigation, route }) => {
 
       setSearchResults(users);
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.log("Error searching users:", error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -142,7 +142,7 @@ const InviteScreen = ({ navigation, route }) => {
         });
         navigation.goBack();
       } catch (error) {
-        console.error("Error inviting user:", error);
+        console.log("Error inviting user:", error);
         Toast.show({
           type: "error",
           text1: "Error",

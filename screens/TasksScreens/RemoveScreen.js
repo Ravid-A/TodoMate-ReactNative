@@ -105,7 +105,7 @@ const RemoveScreen = ({ navigation, route }) => {
 
       setSearchResults(filteredUsers);
     } catch (error) {
-      console.error("Error fetching invited users:", error);
+      console.log("Error fetching invited users:", error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -150,7 +150,7 @@ const RemoveScreen = ({ navigation, route }) => {
         setSelectedUser(null);
         fetchInvitedUsers(searchQuery);
       } catch (error) {
-        console.error("Error removing user from task:", error);
+        console.log("Error removing user from task:", error);
         Toast.show({
           type: "error",
           text1: "Error",
