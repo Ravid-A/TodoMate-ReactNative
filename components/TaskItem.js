@@ -38,9 +38,11 @@ const TaskItem = ({ title, dueDate, tasks, user }) => {
       <Card.Content>
         <Text style={styles.title}>
           {title}
-          {dueDate < currentDate.getTime() && (
+          {completionRatio == 1 ? (
+            <Text style={{ color: "green", marginLeft: 8 }}> (Completed)</Text>
+          ) : dueDate < currentDate.getTime() ? (
             <Text style={{ color: "red", marginLeft: 8 }}> (Overdue)</Text>
-          )}
+          ) : null}
         </Text>
         {user != auth.currentUser?.uid && owner && (
           <Text style={styles.dueDate}>{owner.username}'s task</Text>
