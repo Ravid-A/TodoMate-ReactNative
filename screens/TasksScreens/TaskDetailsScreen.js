@@ -274,6 +274,10 @@ const TaskDetailsScreen = ({ route, navigation }) => {
     navigation.navigate("Remove", { taskId });
   };
 
+  const handleReminder = () => {
+    console.log("Reminder has been pressed");
+  };
+
   if (initializing) return <Loading showActions={true} addGoBack={true} />;
 
   if (loading) {
@@ -317,7 +321,7 @@ const TaskDetailsScreen = ({ route, navigation }) => {
               <Button
                 mode="contained"
                 onPress={handleInvite}
-                style={styles.button}
+                style={{ ...styles.button, ...styles.inviteButton }}
                 disabled={
                   calculateProgress() == 1 || isOverdue(task.dueDate) || loading
                 }
@@ -327,7 +331,7 @@ const TaskDetailsScreen = ({ route, navigation }) => {
               <Button
                 mode="contained"
                 onPress={handleRemoveTask}
-                style={styles.button}
+                style={{ ...styles.button, ...styles.removeButton }}
                 disabled={
                   calculateProgress() == 1 || isOverdue(task.dueDate) || loading
                 }
@@ -340,7 +344,7 @@ const TaskDetailsScreen = ({ route, navigation }) => {
             <Button
               mode="contained"
               onPress={handleLeave}
-              style={styles.button}
+              style={{ ...styles.button, ...styles.leaveButton }}
               disabled={
                 calculateProgress() == 1 || isOverdue(task.dueDate) || loading
               }
@@ -357,10 +361,20 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         />
       </View>
       <FAB
-        disabled={loading}
-        style={styles.fab}
+        disabled={
+          calculateProgress() == 1 || isOverdue(task.dueDate) || loading
+        }
+        style={styles.refreshFab}
         icon="refresh"
         onPress={handleRefresh}
+      />
+      <FAB
+        disabled={
+          calculateProgress() == 1 || isOverdue(task.dueDate) || loading
+        }
+        style={styles.reminderFab}
+        icon="clock"
+        onPress={handleReminder}
       />
     </>
   );
@@ -423,15 +437,30 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 4,
   },
-  fab: {
+  refreshFab: {
     position: "absolute",
     margin: 16,
     right: 5,
     bottom: 20,
   },
+  reminderFab: {
+    position: "absolute",
+    margin: 16,
+    right: 5,
+    bottom: 100,
+  },
   checkbox: {
     marginTop: 4,
     marginRight: 4,
+  },
+  inviteButton: {
+    backgroundColor: "green",
+  },
+  removeButton: {
+    backgroundColor: "red",
+  },
+  leaveButton: {
+    backgroundColor: "red",
   },
 });
 
