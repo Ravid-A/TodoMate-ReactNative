@@ -68,7 +68,6 @@ const ChangeUsernameDialog = ({ onDismiss }) => {
       setIsLoading(true);
       try {
         const isTaken = await isUsernameTaken(newUsername);
-        console.log(isTaken);
         if (isTaken) {
           Toast.show({
             type: "error",
