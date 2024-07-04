@@ -133,6 +133,7 @@ const MainScreen = ({ navigation }) => {
     // Implement your task item component here
     return (
       <TouchableOpacity
+        disabled={loading}
         onPress={() => {
           navigation.navigate("TaskDetails", { taskId: item.id });
         }}
