@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { TouchableWithoutFeedback, Keyboard, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -6,8 +7,12 @@ import { Provider as PaperProvider } from "react-native-paper";
 
 import Toast from "react-native-toast-message";
 
+import NetInfo from "@react-native-community/netinfo";
+
 // inialize firebase
 import "./helpers/firebase";
+
+import NoInternet from "./components/NoInternet";
 
 import MainScreen from "./screens/MainScreen";
 import LoginScreen from "./screens/UserScreens/LoginScreen";
@@ -22,7 +27,30 @@ import toastConfig from "./helpers/toastConfig";
 
 const Stack = createStackNavigator();
 
-function App() {
+const App = () => {
+  const [isConnected, setIsConnected] = useState(false);
+
+  // // catch no internet connection
+  // NetInfo.fetch().then((state) => {
+  //   setIsConnected(state.isConnected);
+  // });
+
+  NetInfo.addEventListener((state) => {
+    if (state.isConnected != isConnected) {
+      setIsConnected(state.isConnected);
+    }
+  });
+
+  if (!isConnected) {
+    return (
+      <View style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <NoInternet />
+        </SafeAreaProvider>
+      </View>
+    );
+  }
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={{ flex: 1 }}>
@@ -54,6 +82,6 @@ function App() {
       </View>
     </TouchableWithoutFeedback>
   );
-}
+};
 
 export default App;
