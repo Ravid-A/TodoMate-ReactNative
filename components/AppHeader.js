@@ -33,13 +33,16 @@ const AppHeader = ({
       });
   };
 
+  const handleGoBack = () => {
+    if (navigation && navigation.goBack) {
+      navigation.goBack();
+    }
+  };
+
   return (
     <Appbar.Header style={styles.header}>
       {addGoBack && (
-        <Appbar.BackAction
-          onPress={() => navigation.goBack()}
-          disabled={isLoading}
-        />
+        <Appbar.BackAction onPress={handleGoBack} disabled={isLoading} />
       )}
       <Appbar.Content
         title="TodoMate"
