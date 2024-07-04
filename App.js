@@ -42,13 +42,7 @@ const App = () => {
   });
 
   if (!isConnected) {
-    return (
-      <View style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <NoInternet />
-        </SafeAreaProvider>
-      </View>
-    );
+    return <NoInternet />;
   }
 
   return (

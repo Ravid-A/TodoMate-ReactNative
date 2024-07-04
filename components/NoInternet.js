@@ -5,16 +5,18 @@ import AppHeader from "./AppHeader";
 
 const NoInternet = () => {
   return (
-    <>
-      <AppHeader showActions={false} />
-      <View style={styles.content}>
-        <MaterialCommunityIcons name="wifi-off" size={80} color="#666" />
-        <Text style={styles.title}>No Internet Connection</Text>
-        <Text style={styles.message}>
-          Please check your internet connection and try again.
-        </Text>
-      </View>
-    </>
+    <View style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AppHeader showActions={false} />
+        <View style={styles.content}>
+          <MaterialCommunityIcons name="wifi-off" size={80} color="#666" />
+          <Text style={styles.title}>No Internet Connection</Text>
+          <Text style={styles.message}>
+            Please check your internet connection and try again.
+          </Text>
+        </View>
+      </SafeAreaProvider>
+    </View>
   );
 };
 
