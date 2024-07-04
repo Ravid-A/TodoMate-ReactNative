@@ -30,11 +30,7 @@ const Stack = createStackNavigator();
 const App = () => {
   const [isConnected, setIsConnected] = useState(false);
 
-  // // catch no internet connection
-  // NetInfo.fetch().then((state) => {
-  //   setIsConnected(state.isConnected);
-  // });
-
+  // Check if device have internet connection
   NetInfo.addEventListener((state) => {
     if (state.isConnected != isConnected) {
       setIsConnected(state.isConnected);
