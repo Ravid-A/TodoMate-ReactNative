@@ -294,12 +294,17 @@ const TaskDetailsScreen = ({ route, navigation }) => {
       <View style={styles.content}>
         <Title style={styles.title}>
           {task.title}
-          {isOverdue(task.dueDate) && (
+          {calculateProgress() == 1 ? (
+            <Text style={{ color: "green", marginLeft: 8, fontWeight: "bold" }}>
+              {" "}
+              (Completed)
+            </Text>
+          ) : isOverdue(task.dueDate) ? (
             <Text style={{ color: "red", marginLeft: 8, fontWeight: "bold" }}>
               {" "}
               (Overdue)
             </Text>
-          )}
+          ) : null}
         </Title>
         {task.user != auth.currentUser?.uid && owner && (
           <Text style={styles.dueDate}>{owner.username}'s task</Text>
