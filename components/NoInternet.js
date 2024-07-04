@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import AppHeader from "./AppHeader";
 
 const NoInternet = () => {
