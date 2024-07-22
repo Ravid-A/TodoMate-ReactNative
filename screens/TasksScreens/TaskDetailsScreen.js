@@ -274,10 +274,6 @@ const TaskDetailsScreen = ({ route, navigation }) => {
     navigation.navigate("Remove", { taskId });
   };
 
-  const handleReminder = () => {
-    console.log("Reminder has been pressed");
-  };
-
   if (initializing) return <Loading showActions={true} addGoBack={true} />;
 
   if (loading) {
@@ -373,14 +369,6 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         icon="refresh"
         onPress={handleRefresh}
       />
-      <FAB
-        disabled={
-          calculateProgress() == 1 || isOverdue(task.dueDate) || loading
-        }
-        style={styles.reminderFab}
-        icon="clock"
-        onPress={handleReminder}
-      />
     </>
   );
 };
@@ -447,12 +435,6 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 5,
     bottom: 20,
-  },
-  reminderFab: {
-    position: "absolute",
-    margin: 16,
-    right: 5,
-    bottom: 100,
   },
   checkbox: {
     marginTop: 4,
