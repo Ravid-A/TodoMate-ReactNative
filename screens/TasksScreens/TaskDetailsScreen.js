@@ -274,6 +274,10 @@ const TaskDetailsScreen = ({ route, navigation }) => {
     navigation.navigate("Remove", { taskId });
   };
 
+  const handleEdit = () => {
+    navigation.navigate("EditTask", { taskId: taskId });
+  };
+
   if (initializing) return <Loading showActions={true} addGoBack={true} />;
 
   if (loading) {
@@ -365,12 +369,29 @@ const TaskDetailsScreen = ({ route, navigation }) => {
         disabled={
           calculateProgress() == 1 || isOverdue(task.dueDate) || loading
         }
-        style={styles.refreshFab}
+        style={{
+          ...styles.refreshFab,
+          bottom: getCorrectHeight(task.user === auth.currentUser?.uid),
+        }}
         icon="refresh"
         onPress={handleRefresh}
       />
+      {task.user === auth.currentUser?.uid && (
+        <FAB
+          disabled={
+            calculateProgress() == 1 || isOverdue(task.dueDate) || loading
+          }
+          style={styles.editFab}
+          icon="pencil"
+          onPress={handleEdit}
+        />
+      )}
     </>
   );
+};
+
+const getCorrectHeight = (should) => {
+  return should ? 100 : 25;
 };
 
 const styles = StyleSheet.create({
@@ -434,7 +455,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     margin: 16,
     right: 5,
-    bottom: 20,
+  },
+  editFab: {
+    position: "absolute",
+    margin: 16,
+    right: 5,
+    bottom: 25,
   },
   checkbox: {
     marginTop: 4,

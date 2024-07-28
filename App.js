@@ -19,6 +19,7 @@ import LoginScreen from "./screens/UserScreens/LoginScreen";
 import RegisterScreen from "./screens/UserScreens/RegisterScreen";
 import ProfileScreen from "./screens/UserScreens/ProfileScreen";
 import AddTaskScreen from "./screens/TasksScreens/AddTaskScreen";
+import EditTaskScreen from "./screens/TasksScreens/EditTaskScreen";
 import TaskDetailsScreen from "./screens/TasksScreens/TaskDetailsScreen";
 import InviteScreen from "./screens/TasksScreens/InviteScreen";
 import RemoveScreen from "./screens/TasksScreens/RemoveScreen";
@@ -62,6 +63,7 @@ const App = () => {
                   name="TaskDetails"
                   component={TaskDetailsScreen}
                 />
+                <Stack.Screen name="EditTask" component={EditTaskScreen} />
                 <Stack.Screen name="Invite" component={InviteScreen} />
                 <Stack.Screen name="Remove" component={RemoveScreen} />
               </Stack.Navigator>
