@@ -33,7 +33,7 @@ const MainScreen = ({ navigation }) => {
       return dueDate < currentDate.getTime();
     };
 
-    if (!user) {
+    if (!user || !auth.currentUser) {
       return;
     }
 
