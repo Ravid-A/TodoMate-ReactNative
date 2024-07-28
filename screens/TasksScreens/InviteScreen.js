@@ -78,21 +78,41 @@ const InviteScreen = ({ navigation, route }) => {
 
   const handleSearch = async (text) => {
     setSearchQuery(text);
-
     setIsLoading(true);
     const usersRef = collection(db, "users");
     const tasksUsersRef = collection(db, "tasks_users");
 
     try {
       // Query users based on search text
-      const q = query(
+      const emailQuery = query(
         usersRef,
         where("email", ">=", text.toLowerCase()),
-        where("email", "<=", text.toLowerCase() + "\uf8ff"),
+        where("email", "<=", text.toLowerCase() + "\uf8ff")
+      );
+      const usernameQuery = query(
+        usersRef,
         where("username", ">=", text.toLowerCase()),
         where("username", "<=", text.toLowerCase() + "\uf8ff")
       );
-      const querySnapshot = await getDocs(q);
+
+      const [emailQuerySnapshot, usernameQuerySnapshot] = await Promise.all([
+        getDocs(emailQuery),
+        getDocs(usernameQuery),
+      ]);
+
+      // Combine and deduplicate results
+      const emailResults = emailQuerySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      const usernameResults = usernameQuerySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      const combinedResults = [...emailResults, ...usernameResults];
+      const uniqueResults = Array.from(
+        new Set(combinedResults.map((user) => user.id))
+      ).map((id) => combinedResults.find((user) => user.id === id));
 
       // Get list of invited user IDs for the task
       const tasksUsersQuery = query(tasksUsersRef, where("task", "==", taskId));
@@ -102,12 +122,10 @@ const InviteScreen = ({ navigation, route }) => {
       );
 
       // Filter out users who are already invited
-      const users = querySnapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter(
-          (user) =>
-            !invitedUserIds.includes(user.id) && user.id !== currentUser.uid
-        );
+      const users = uniqueResults.filter(
+        (user) =>
+          !invitedUserIds.includes(user.id) && user.id !== currentUser.uid
+      );
 
       setSearchResults(users);
     } catch (error) {
@@ -126,6 +144,11 @@ const InviteScreen = ({ navigation, route }) => {
     setSelectedUser(user);
     setSearchQuery("");
     setSearchResults([]);
+  };
+
+  const handleDiselectUser = () => {
+    setSelectedUser(null);
+    handleSearch("");
   };
 
   const handleInvite = async () => {
@@ -204,7 +227,7 @@ const InviteScreen = ({ navigation, route }) => {
             <IconButton
               icon="close"
               size={20}
-              onPress={() => setSelectedUser(null)}
+              onPress={handleDiselectUser}
               style={styles.clearSelection}
             />
           </View>

@@ -36,7 +36,6 @@ const RemoveScreen = ({ navigation, route }) => {
 
   const db = getFirestore();
   const auth = getAuth();
-  const currentUser = auth.currentUser;
 
   // Handle user state changes
   const onAuthStateChanged = (user) => {
@@ -123,6 +122,12 @@ const RemoveScreen = ({ navigation, route }) => {
 
   const handleSelectUser = (user) => {
     setSelectedUser(user);
+    setSearchQuery("");
+  };
+
+  const handleDiselectUser = () => {
+    setSelectedUser(null);
+    handleSearch("");
   };
 
   const handleRemove = async () => {
@@ -212,7 +217,7 @@ const RemoveScreen = ({ navigation, route }) => {
             <IconButton
               icon="close"
               size={20}
-              onPress={() => setSelectedUser(null)}
+              onPress={handleDiselectUser}
               style={styles.clearSelection}
             />
           </View>
